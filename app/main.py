@@ -3,7 +3,7 @@ import logging
 import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
@@ -178,214 +178,198 @@ def reset_endpoint():
 # Ops Dashboard HTML Page
 @app.get("/ops", response_class=HTMLResponse)
 @app.get("/", response_class=HTMLResponse)
-def ops_dashboard():
-    return """<!DOCTYPE html>
+def ops_dashboard(response: Response):
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
+    html = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuickDrop — Rider Payout Dispute Desk</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            serif: ['Cinzel', 'serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
-          },
-          colors: {
-            gold: {
-              50: '#fffdf5',
-              100: '#fef9e8',
-              200: '#fcf0c4',
-              300: '#f8e396',
-              400: '#f3ce5e',
-              500: '#e5b842',
-              600: '#c69226',
-              700: '#9e6d1c',
-              800: '#7e531c',
-              900: '#69441a',
-              accent: '#F5C542',
-              light: '#FFE28A',
-              glow: '#D4A017',
-            },
-            obsidian: {
-              950: '#030303',
-              900: '#080808',
-              850: '#0e0e0e',
-              800: '#141414',
-              750: '#1a1a1a',
-              700: '#222222',
-              600: '#2f2f2f',
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    /* Premium Gold Glow & Gradients */
-    .gold-gradient-text {
-      background: linear-gradient(135deg, #FFF6D6 0%, #F5C542 40%, #E5B842 70%, #B8860B 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    /* Direct Hardcoded Luxury Obsidian & Radiant Gold Palette */
+    :root {
+      --bg-black: #050505;
+      --card-black: #0c0c0c;
+      --card-border: rgba(229, 184, 66, 0.22);
+      --gold-primary: #F5C542;
+      --gold-light: #FFF0B3;
+      --gold-dim: #9E7A22;
+      --gold-glow: rgba(245, 197, 66, 0.12);
     }
 
-    .gold-border-gradient {
-      border-image: linear-gradient(135deg, rgba(245, 197, 66, 0.4), rgba(212, 160, 23, 0.1), rgba(245, 197, 66, 0.3)) 1;
+    body {
+      background-color: #040404 !important;
+      color: #e5e5e5 !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
-    .gold-box-glow {
-      box-shadow: 0 0 25px rgba(229, 184, 66, 0.08), 0 0 1px 1px rgba(229, 184, 66, 0.2);
+    .gold-header {
+      background: linear-gradient(135deg, #FFF8DC 0%, #F5C542 45%, #E5B842 75%, #B8860B 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      font-weight: 800 !important;
+      letter-spacing: 0.04em !important;
     }
 
-    .gold-box-glow-hover:hover {
-      box-shadow: 0 0 35px rgba(229, 184, 66, 0.18), 0 0 1px 1px rgba(245, 197, 66, 0.4);
+    .gold-card {
+      background: #0a0a0a !important;
+      border: 1px solid rgba(229, 184, 66, 0.22) !important;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8), 0 0 15px rgba(229, 184, 66, 0.05) !important;
+      border-radius: 16px !important;
+    }
+
+    .gold-card:hover {
+      border-color: rgba(245, 197, 66, 0.45) !important;
+      box-shadow: 0 6px 30px rgba(0, 0, 0, 0.9), 0 0 25px rgba(229, 184, 66, 0.12) !important;
     }
 
     .gold-btn {
-      background: linear-gradient(135deg, #FCE07A 0%, #E5B842 50%, #C69226 100%);
-      color: #050505;
-      font-weight: 700;
-      transition: all 0.25s ease;
-      box-shadow: 0 4px 15px rgba(229, 184, 66, 0.2);
+      background: linear-gradient(135deg, #FCE07A 0%, #F5C542 50%, #C69226 100%) !important;
+      color: #000000 !important;
+      font-weight: 800 !important;
+      border: none !important;
+      box-shadow: 0 2px 10px rgba(245, 197, 66, 0.3) !important;
+      transition: all 0.2s ease !important;
     }
     .gold-btn:hover {
-      background: linear-gradient(135deg, #FFF09E 0%, #F5C542 50%, #D4A017 100%);
-      box-shadow: 0 6px 22px rgba(229, 184, 66, 0.35);
-      transform: translateY(-1px);
+      background: linear-gradient(135deg, #FFF3B8 0%, #FCE07A 50%, #D4A017 100%) !important;
+      box-shadow: 0 4px 18px rgba(245, 197, 66, 0.45) !important;
+      transform: translateY(-1px) !important;
     }
 
     .gold-btn-outline {
-      background: rgba(229, 184, 66, 0.04);
-      border: 1px solid rgba(229, 184, 66, 0.3);
-      color: #F8E396;
-      transition: all 0.25s ease;
+      background: rgba(245, 197, 66, 0.05) !important;
+      border: 1px solid rgba(245, 197, 66, 0.35) !important;
+      color: #FCE07A !important;
+      transition: all 0.2s ease !important;
     }
     .gold-btn-outline:hover {
-      background: rgba(229, 184, 66, 0.12);
-      border-color: rgba(245, 197, 66, 0.6);
-      color: #FFF6D6;
+      background: rgba(245, 197, 66, 0.15) !important;
+      border-color: #F5C542 !important;
+      color: #FFFFFF !important;
     }
 
-    /* Custom Scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #080808;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #2a2414;
-      border-radius: 4px;
-      border: 1px solid rgba(229, 184, 66, 0.2);
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #69441a;
+    .gold-badge {
+      background: rgba(245, 197, 66, 0.12) !important;
+      border: 1px solid rgba(245, 197, 66, 0.35) !important;
+      color: #FCE07A !important;
     }
 
-    @keyframes pulse-gold {
-      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(229, 184, 66, 0.5); }
-      50% { transform: scale(1.08); opacity: 0.8; box-shadow: 0 0 12px 3px rgba(229, 184, 66, 0.6); }
+    .gold-input {
+      background: #0e0e0e !important;
+      border: 1px solid rgba(229, 184, 66, 0.25) !important;
+      color: #FFFFFF !important;
     }
-    .gold-pulse {
-      animation: pulse-gold 2.5s infinite ease-in-out;
+    .gold-input:focus {
+      border-color: #F5C542 !important;
+      outline: none !important;
+      box-shadow: 0 0 10px rgba(245, 197, 66, 0.25) !important;
     }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #050505; }
+    ::-webkit-scrollbar-thumb { background: #2f2511; border-radius: 4px; border: 1px solid rgba(229, 184, 66, 0.3); }
+    ::-webkit-scrollbar-thumb:hover { background: #5c4314; }
+
+    @keyframes pulse-ring {
+      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(245, 197, 66, 0.7); }
+      50% { transform: scale(1.1); opacity: 0.8; box-shadow: 0 0 10px 4px rgba(245, 197, 66, 0.8); }
+    }
+    .gold-pulse-indicator { animation: pulse-ring 2.2s infinite ease-in-out; }
   </style>
 </head>
-<body class="bg-obsidian-950 text-slate-200 min-h-screen font-sans selection:bg-gold-500 selection:text-black antialiased">
+<body class="min-h-screen font-sans selection:bg-amber-400 selection:text-black antialiased">
 
-  <!-- LUXURY TOP HEADER -->
-  <header class="border-b border-gold-900/40 bg-obsidian-900/95 backdrop-blur-xl sticky top-0 z-50">
+  <!-- TOP EXECUTIVE NAVIGATION BAR -->
+  <header style="background: rgba(8, 8, 8, 0.95); border-bottom: 1px solid rgba(229, 184, 66, 0.25);" class="backdrop-blur-xl sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gold-300 via-gold-500 to-gold-700 p-[1px] shadow-lg shadow-gold-500/10">
-          <div class="w-full h-full rounded-[11px] bg-obsidian-950 flex items-center justify-center font-serif text-gold-400 font-bold text-lg">
+        <div style="background: linear-gradient(135deg, #FCE07A, #C69226); padding: 1px; border-radius: 12px;">
+          <div style="background: #070707; border-radius: 11px; width: 38px; height: 38px;" class="flex items-center justify-center font-bold text-amber-300 text-lg">
             ⚡
           </div>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-serif text-lg font-bold tracking-wider gold-gradient-text uppercase">
+            <h1 class="text-lg font-bold tracking-wider gold-header uppercase">
               QuickDrop Dispute Desk
             </h1>
-            <span class="text-[10px] tracking-widest uppercase font-mono px-2 py-0.5 rounded-full bg-gold-950/80 text-gold-300 border border-gold-500/30">
-              Autonomous Agent
+            <span class="gold-badge text-[10px] uppercase font-mono px-2 py-0.5 rounded-full font-bold">
+              Autonomous Agent Active
             </span>
           </div>
-          <p class="text-xs text-zinc-500">Tier-1 Rider Payout Investigation & Human Ops Console</p>
+          <p class="text-xs text-zinc-400">Rider Payout Dispute Investigation & Autonomous Bank Clearance</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3 text-xs">
-        <!-- Live Ledger Status -->
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-obsidian-850 border border-gold-900/50 text-zinc-300">
-          <span class="w-2 h-2 rounded-full bg-gold-400 gold-pulse"></span>
-          <span class="font-mono text-gold-300">PaySwift: Connected</span>
+        <div style="background: #0a0a0a; border: 1px solid rgba(229, 184, 66, 0.25);" class="flex items-center gap-2 px-3 py-1.5 rounded-lg">
+          <span style="background: #F5C542;" class="w-2 h-2 rounded-full gold-pulse-indicator"></span>
+          <span class="font-mono text-amber-300 font-semibold">PaySwift: Connected</span>
         </div>
-
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-obsidian-850 border border-gold-900/50 font-mono text-zinc-400">
+        <div style="background: #0a0a0a; border: 1px solid rgba(229, 184, 66, 0.25);" class="flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-zinc-400">
           <span>IST: UTC+05:30</span>
         </div>
-
-        <button onclick="refreshDashboard()" class="gold-btn-outline px-3.5 py-1.5 rounded-lg font-semibold flex items-center gap-1.5">
-          <span>↻</span> Refresh
+        <button onclick="refreshDashboard()" class="gold-btn px-3.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer">
+          ↻ Refresh Data
         </button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN CONTAINER -->
+  <!-- MAIN WRAPPER -->
   <main class="max-w-7xl mx-auto p-6 space-y-6">
 
-    <!-- METRICS STRIP (BLACK & GOLD CARDS) -->
+    <!-- EXECUTIVE METRICS STRIP -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Metric 1 -->
-      <div class="bg-obsidian-900/80 rounded-xl p-5 border border-gold-900/40 gold-box-glow gold-box-glow-hover transition">
+      <div class="gold-card p-5">
         <div class="flex justify-between items-start">
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-300/70 font-mono">Pending Approvals</p>
-          <span class="text-gold-400 text-sm">✦</span>
+          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300/80">Pending Approvals</p>
+          <span class="text-amber-400 text-sm">✦</span>
         </div>
-        <p id="stat-approvals" class="text-3xl font-extrabold gold-gradient-text font-serif mt-2">0</p>
-        <p class="text-[11px] text-zinc-500 mt-1">Requires ops clearance (> ₹200 / repeat)</p>
+        <p id="stat-approvals" class="text-3xl font-extrabold gold-header mt-2">0</p>
+        <p class="text-[11px] text-zinc-400 mt-1">Requires human clearance (> ₹200 / repeat)</p>
       </div>
 
       <!-- Metric 2 -->
-      <div class="bg-obsidian-900/80 rounded-xl p-5 border border-gold-900/40 gold-box-glow gold-box-glow-hover transition">
+      <div class="gold-card p-5">
         <div class="flex justify-between items-start">
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-300/70 font-mono">Ops Escalations</p>
+          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300/80">Ops Escalations</p>
           <span class="text-amber-400 text-sm">⚠</span>
         </div>
-        <p id="stat-escalations" class="text-3xl font-extrabold text-amber-300 font-serif mt-2">0</p>
-        <p class="text-[11px] text-zinc-500 mt-1">Policy exceptions & security defenses</p>
+        <p id="stat-escalations" class="text-3xl font-extrabold text-amber-200 mt-2">0</p>
+        <p class="text-[11px] text-zinc-400 mt-1">Policy exceptions, fraud & security alerts</p>
       </div>
 
       <!-- Metric 3 -->
-      <div class="bg-obsidian-900/80 rounded-xl p-5 border border-gold-900/40 gold-box-glow gold-box-glow-hover transition">
+      <div class="gold-card p-5">
         <div class="flex justify-between items-start">
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-300/70 font-mono">Auto-Pay Rule</p>
-          <span class="text-gold-400 text-sm">₹</span>
+          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300/80">Auto-Pay Rule</p>
+          <span class="text-amber-400 text-sm">₹</span>
         </div>
-        <p class="text-3xl font-extrabold gold-gradient-text font-serif mt-2">≤ ₹200</p>
-        <p class="text-[11px] text-zinc-500 mt-1">Max 1 auto-pay / rider / IST day</p>
+        <p class="text-3xl font-extrabold gold-header mt-2">≤ ₹200</p>
+        <p class="text-[11px] text-zinc-400 mt-1">Max 1 auto-pay / rider / IST calendar day</p>
       </div>
 
       <!-- Metric 4 -->
-      <div class="bg-obsidian-900/80 rounded-xl p-5 border border-gold-900/40 gold-box-glow gold-box-glow-hover transition">
+      <div class="gold-card p-5">
         <div class="flex justify-between items-start">
-          <p class="text-[11px] font-semibold uppercase tracking-wider text-gold-300/70 font-mono">Policy Window</p>
-          <span class="text-gold-400 text-sm">⏳</span>
+          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300/80">Policy Window</p>
+          <span class="text-amber-400 text-sm">⏳</span>
         </div>
-        <p class="text-3xl font-extrabold gold-gradient-text font-serif mt-2">7 Days</p>
-        <p class="text-[11px] text-zinc-500 mt-1">Strict IST calendar boundary</p>
+        <p class="text-3xl font-extrabold gold-header mt-2">7 Days</p>
+        <p class="text-[11px] text-zinc-400 mt-1">Strict IST calendar boundary</p>
       </div>
     </div>
 
@@ -394,35 +378,33 @@ def ops_dashboard():
 
       <!-- LEFT COLUMN: OPS PENDING QUEUE (7 Cols) -->
       <div class="lg:col-span-7 space-y-6">
-        <section class="bg-obsidian-900/90 rounded-2xl border border-gold-900/40 gold-box-glow overflow-hidden">
-          <div class="p-5 border-b border-gold-900/30 flex items-center justify-between bg-obsidian-850/60">
+        <section class="gold-card overflow-hidden">
+          <div style="background: #080808; border-bottom: 1px solid rgba(229, 184, 66, 0.2);" class="p-5 flex items-center justify-between">
             <div>
-              <h2 class="font-serif font-bold text-white tracking-wide text-base gold-gradient-text flex items-center gap-2">
+              <h2 class="text-base font-bold text-white tracking-wide gold-header flex items-center gap-2">
                 Operations Action Queue
               </h2>
-              <p class="text-xs text-zinc-500">Items awaiting human authorization before fund disbursement</p>
+              <p class="text-xs text-zinc-400">Items awaiting human authorization before fund disbursement</p>
             </div>
-            <div class="flex items-center gap-2">
-              <span id="pending-count-badge" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-gold-950 text-gold-300 border border-gold-500/30">
-                0 Items
-              </span>
-            </div>
+            <span id="pending-count-badge" class="gold-badge px-3 py-1 rounded-full text-[11px] font-mono font-bold">
+              0 Items
+            </span>
           </div>
 
           <!-- Table Container -->
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
-              <thead class="bg-obsidian-950 font-mono text-[10px] uppercase tracking-wider text-gold-300/80 border-b border-gold-900/40">
+              <thead style="background: #060606; border-bottom: 1px solid rgba(229, 184, 66, 0.2);" class="font-mono text-[10px] uppercase tracking-wider text-amber-300/90">
                 <tr>
                   <th class="px-4 py-3.5">Item</th>
                   <th class="px-4 py-3.5">Rider</th>
-                  <th class="px-4 py-3.5">Classification</th>
+                  <th class="px-4 py-3.5">Type</th>
                   <th class="px-4 py-3.5">Amount</th>
                   <th class="px-4 py-3.5">Reason</th>
                   <th class="px-4 py-3.5 text-right">Clearance</th>
                 </tr>
               </thead>
-              <tbody id="pending-table-body" class="divide-y divide-gold-900/20 text-zinc-300 font-mono">
+              <tbody id="pending-table-body" class="divide-y divide-zinc-900 text-zinc-300 font-mono">
                 <tr>
                   <td colspan="6" class="px-4 py-10 text-center text-zinc-500 font-sans">
                     No pending items. The queue is fully cleared.
@@ -434,36 +416,36 @@ def ops_dashboard():
         </section>
 
         <!-- ACTIVE RIDERS FAST-SWITCHER -->
-        <section class="bg-obsidian-900/80 rounded-2xl border border-gold-900/40 p-5 gold-box-glow">
+        <section class="gold-card p-5">
           <div class="flex items-center justify-between mb-3.5">
-            <h3 class="font-serif text-sm font-bold gold-gradient-text uppercase tracking-wider">
+            <h3 class="text-sm font-bold gold-header uppercase tracking-wider">
               Recent Rider Directory
             </h3>
-            <span class="text-[11px] text-zinc-500 font-mono">Click to inspect</span>
+            <span class="text-[11px] text-zinc-400 font-mono">Click to inspect</span>
           </div>
           <div id="riders-list" class="flex flex-wrap gap-2">
-            <span class="text-xs text-zinc-600">Loading riders...</span>
+            <span class="text-xs text-zinc-500">Loading riders...</span>
           </div>
         </section>
       </div>
 
       <!-- RIGHT COLUMN: RIDER AUDIT & CHAT EXPLORER (5 Cols) -->
       <div class="lg:col-span-5 space-y-6">
-        <section class="bg-obsidian-900/90 rounded-2xl border border-gold-900/40 gold-box-glow p-5 flex flex-col h-full min-h-[580px]">
+        <section class="gold-card p-5 flex flex-col h-full min-h-[580px]">
           
           <!-- Dossier Top Bar -->
-          <div class="flex items-center justify-between pb-4 border-b border-gold-900/30">
+          <div style="border-bottom: 1px solid rgba(229, 184, 66, 0.2);" class="flex items-center justify-between pb-4">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-gold-950 border border-gold-500/40 flex items-center justify-center font-bold text-gold-300 font-mono text-sm">
-                <span id="dossier-avatar">R</span>
+              <div style="background: #141208; border: 1px solid rgba(229, 184, 66, 0.4);" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-amber-300 font-mono text-sm">
+                <span id="dossier-avatar">R03</span>
               </div>
               <div>
                 <h3 id="dossier-rider-id" class="font-bold text-white text-sm tracking-wide">R003 — Imran Khan</h3>
-                <p id="dossier-meta" class="text-xs text-zinc-500 font-mono">Bengaluru · Joined 2024-03-15</p>
+                <p id="dossier-meta" class="text-xs text-zinc-400 font-mono">Bengaluru · Joined 2024-03-15</p>
               </div>
             </div>
-            <div class="flex gap-1.5 bg-obsidian-950 p-1 rounded-lg border border-gold-900/40 font-mono text-[11px]">
-              <button onclick="switchTab('trace')" id="tab-btn-trace" class="px-3 py-1 rounded-md font-semibold bg-gold-500 text-obsidian-950">
+            <div style="background: #050505; border: 1px solid rgba(229, 184, 66, 0.25);" class="flex gap-1.5 p-1 rounded-lg font-mono text-[11px]">
+              <button onclick="switchTab('trace')" id="tab-btn-trace" class="px-3 py-1 rounded-md font-bold gold-btn">
                 Trace
               </button>
               <button onclick="switchTab('chat')" id="tab-btn-chat" class="px-3 py-1 rounded-md font-semibold text-zinc-400 hover:text-white">
@@ -474,14 +456,14 @@ def ops_dashboard():
 
           <!-- Trace View Tab -->
           <div id="tab-content-trace" class="flex-1 mt-4 overflow-y-auto space-y-3 max-h-[520px] pr-1">
-            <div class="text-center py-12 text-zinc-600 font-mono text-xs">
+            <div class="text-center py-12 text-zinc-500 font-mono text-xs">
               Select any rider or pending item on the left to review their step-by-step autonomous trace.
             </div>
           </div>
 
           <!-- Chat View Tab (Hidden by default) -->
           <div id="tab-content-chat" class="hidden flex-1 mt-4 overflow-y-auto space-y-3 max-h-[520px] pr-1 font-sans">
-            <div class="text-center py-12 text-zinc-600 font-mono text-xs">
+            <div class="text-center py-12 text-zinc-500 font-mono text-xs">
               No messages selected.
             </div>
           </div>
@@ -492,20 +474,20 @@ def ops_dashboard():
     </div>
 
     <!-- BOTTOM SECTION: PAYSWIFT LIVE LEDGER MONITOR -->
-    <section class="bg-obsidian-900/80 rounded-2xl border border-gold-900/40 p-5 gold-box-glow">
+    <section class="gold-card p-5">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-gold-400 gold-pulse"></span>
-          <h3 class="font-serif text-sm font-bold gold-gradient-text uppercase tracking-wider">
+          <span style="background: #F5C542;" class="w-2.5 h-2.5 rounded-full gold-pulse-indicator"></span>
+          <h3 class="text-sm font-bold gold-header uppercase tracking-wider">
             PaySwift Live Banking Ledger
           </h3>
         </div>
-        <p class="text-[11px] text-zinc-500 font-mono">Reconciled against bank sandbox in real time</p>
+        <p class="text-[11px] text-zinc-400 font-mono">Reconciled against bank sandbox in real time</p>
       </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs font-mono">
-          <thead class="bg-obsidian-950 uppercase text-[10px] tracking-wider text-gold-300/70 border-b border-gold-900/30">
+          <thead style="background: #060606; border-bottom: 1px solid rgba(229, 184, 66, 0.2);" class="uppercase text-[10px] tracking-wider text-amber-300/80">
             <tr>
               <th class="px-4 py-2.5">Payout ID</th>
               <th class="px-4 py-2.5">Rider</th>
@@ -515,9 +497,9 @@ def ops_dashboard():
               <th class="px-4 py-2.5 text-right">Timestamp</th>
             </tr>
           </thead>
-          <tbody id="payswift-ledger-body" class="divide-y divide-gold-900/20 text-zinc-300">
+          <tbody id="payswift-ledger-body" class="divide-y divide-zinc-900 text-zinc-300">
             <tr>
-              <td colspan="6" class="px-4 py-6 text-center text-zinc-600 font-sans">No recent transactions recorded yet.</td>
+              <td colspan="6" class="px-4 py-6 text-center text-zinc-500 font-sans">No recent transactions recorded yet.</td>
             </tr>
           </tbody>
         </table>
@@ -538,12 +520,12 @@ def ops_dashboard():
       const chatContent = document.getElementById('tab-content-chat');
 
       if (tab === 'trace') {
-        traceBtn.className = 'px-3 py-1 rounded-md font-semibold bg-gold-500 text-obsidian-950 shadow-sm';
+        traceBtn.className = 'px-3 py-1 rounded-md font-bold gold-btn';
         chatBtn.className = 'px-3 py-1 rounded-md font-semibold text-zinc-400 hover:text-white';
         traceContent.classList.remove('hidden');
         chatContent.classList.add('hidden');
       } else {
-        chatBtn.className = 'px-3 py-1 rounded-md font-semibold bg-gold-500 text-obsidian-950 shadow-sm';
+        chatBtn.className = 'px-3 py-1 rounded-md font-bold gold-btn';
         traceBtn.className = 'px-3 py-1 rounded-md font-semibold text-zinc-400 hover:text-white';
         chatContent.classList.remove('hidden');
         traceContent.classList.add('hidden');
@@ -570,27 +552,27 @@ def ops_dashboard():
         }
 
         tbody.innerHTML = items.map(item => `
-          <tr class="hover:bg-obsidian-850/80 transition">
-            <td class="px-4 py-3 text-gold-400 font-bold">${item.id}</td>
-            <td class="px-4 py-3 text-white font-bold cursor-pointer hover:underline hover:text-gold-300" onclick="selectRider('${item.rider_id}')">
+          <tr class="hover:bg-zinc-900/60 transition">
+            <td class="px-4 py-3 text-amber-400 font-bold">${item.id}</td>
+            <td class="px-4 py-3 text-white font-bold cursor-pointer hover:underline hover:text-amber-300" onclick="selectRider('${item.rider_id}')">
               ${item.rider_id}
             </td>
             <td class="px-4 py-3">
               <span class="px-2 py-0.5 rounded text-[10px] tracking-wider font-bold ${
                 item.type === 'approval' 
-                  ? 'bg-gold-500/15 text-gold-300 border border-gold-500/30' 
-                  : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                  ? 'gold-badge' 
+                  : 'bg-amber-900/30 text-amber-300 border border-amber-600/40'
               }">
                 ${item.type.toUpperCase()}
               </span>
             </td>
-            <td class="px-4 py-3 font-bold text-gold-300">${item.amount ? '₹' + item.amount : '—'}</td>
-            <td class="px-4 py-3 text-zinc-400 max-w-xs truncate font-sans" title="${item.reason}">${item.reason}</td>
+            <td class="px-4 py-3 font-bold text-amber-300">${item.amount ? '₹' + item.amount : '—'}</td>
+            <td class="px-4 py-3 text-zinc-300 max-w-xs truncate font-sans" title="${item.reason}">${item.reason}</td>
             <td class="px-4 py-3 text-right space-x-2 font-sans">
-              <button onclick="actionItem('${item.id}', 'approve')" class="gold-btn px-2.5 py-1 rounded text-[11px]">
+              <button onclick="actionItem('${item.id}', 'approve')" class="gold-btn px-2.5 py-1 rounded text-[11px] cursor-pointer">
                 Approve
               </button>
-              <button onclick="actionItem('${item.id}', 'reject')" class="gold-btn-outline px-2.5 py-1 rounded text-[11px] text-zinc-400 hover:text-rose-300">
+              <button onclick="actionItem('${item.id}', 'reject')" class="gold-btn-outline px-2.5 py-1 rounded text-[11px] cursor-pointer hover:text-rose-300">
                 Reject
               </button>
             </td>
@@ -626,12 +608,12 @@ def ops_dashboard():
         if (!riders || riders.length === 0) return;
 
         container.innerHTML = riders.map(r => `
-          <button onclick="selectRider('${r.rider_id}')" class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition ${
+          <button onclick="selectRider('${r.rider_id}')" class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${
             activeRider === r.rider_id 
-              ? 'bg-gold-500 text-obsidian-950 border border-gold-400 shadow-sm' 
-              : 'bg-obsidian-950 text-zinc-400 border border-gold-900/40 hover:border-gold-500/50 hover:text-gold-200'
+              ? 'gold-btn' 
+              : 'gold-btn-outline'
           }">
-            ${r.rider_id} ${r.message_count > 0 ? `<span class="opacity-60 text-[10px]">(${r.message_count})</span>` : ''}
+            ${r.rider_id} ${r.message_count > 0 ? `<span class="opacity-75 text-[10px]">(${r.message_count})</span>` : ''}
           </button>
         `).join('');
       } catch (e) {
@@ -646,7 +628,6 @@ def ops_dashboard():
       document.getElementById('dossier-avatar').innerText = riderId.replace('R0', 'R').substring(0, 3);
       document.getElementById('dossier-rider-id').innerText = `${riderId} — Loading...`;
 
-      // Load trace & chat simultaneously
       loadTrace(riderId);
       loadChat(riderId);
     }
@@ -658,37 +639,37 @@ def ops_dashboard():
         const res = await fetch(`/trace/${riderId}`);
         const trace = await res.json();
         if (!trace || trace.length === 0) {
-          container.innerHTML = `<p class="text-zinc-600 text-center py-10 font-mono text-xs">No audit trace recorded yet for ${riderId}.</p>`;
+          container.innerHTML = `<p class="text-zinc-500 text-center py-10 font-mono text-xs">No audit trace recorded yet for ${riderId}.</p>`;
           return;
         }
 
         container.innerHTML = trace.map(step => {
-          let badgeColor = 'bg-zinc-800 text-zinc-400 border-zinc-700';
-          if (step.type === 'message_in') badgeColor = 'bg-sky-500/15 text-sky-300 border-sky-500/30';
-          if (step.type === 'tool_call') badgeColor = 'bg-gold-500/15 text-gold-300 border-gold-500/30';
-          if (step.type === 'decision') badgeColor = 'bg-amber-400/20 text-amber-200 border-amber-400/40';
-          if (step.type === 'reply') badgeColor = 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30';
+          let badgeClass = 'gold-badge';
+          if (step.type === 'message_in') badgeClass = 'bg-sky-950/60 text-sky-300 border border-sky-600/40';
+          if (step.type === 'tool_call') badgeClass = 'gold-badge';
+          if (step.type === 'decision') badgeClass = 'bg-amber-950/60 text-amber-200 border border-amber-600/40';
+          if (step.type === 'reply') badgeClass = 'bg-emerald-950/60 text-emerald-300 border border-emerald-600/40';
 
           return `
-            <div class="p-3 rounded-xl bg-obsidian-950/80 border border-gold-900/30 space-y-1.5 text-xs font-mono">
+            <div style="background: #070707; border: 1px solid rgba(229, 184, 66, 0.2);" class="p-3.5 rounded-xl space-y-1.5 text-xs font-mono">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${badgeColor}">
+                  <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold ${badgeClass}">
                     ${step.type}
                   </span>
-                  <span class="font-bold text-gold-200">${step.name}</span>
+                  <span class="font-bold text-amber-200">${step.name}</span>
                 </div>
                 <span class="text-[10px] text-zinc-500">${new Date(step.at).toLocaleTimeString()}</span>
               </div>
               ${step.input ? `
-                <div class="mt-1 p-2 rounded bg-obsidian-900 border border-gold-950 text-[11px] text-zinc-400">
-                  <span class="text-gold-500/60 font-semibold block text-[10px] uppercase">Input</span>
+                <div style="background: #020202; border: 1px solid rgba(229, 184, 66, 0.1);" class="mt-1.5 p-2 rounded-lg text-[11px] text-zinc-400">
+                  <span class="text-amber-400/80 font-bold block text-[10px] uppercase">Input</span>
                   <pre class="overflow-x-auto whitespace-pre-wrap">${JSON.stringify(step.input, null, 2)}</pre>
                 </div>
               ` : ''}
               ${step.output ? `
-                <div class="mt-1 p-2 rounded bg-obsidian-900 border border-gold-950 text-[11px] text-gold-300/90">
-                  <span class="text-gold-500/60 font-semibold block text-[10px] uppercase">Output</span>
+                <div style="background: #020202; border: 1px solid rgba(229, 184, 66, 0.1);" class="mt-1.5 p-2 rounded-lg text-[11px] text-amber-200/90">
+                  <span class="text-amber-400/80 font-bold block text-[10px] uppercase">Output</span>
                   <pre class="overflow-x-auto whitespace-pre-wrap">${typeof step.output === 'object' ? JSON.stringify(step.output, null, 2) : step.output}</pre>
                 </div>
               ` : ''}
@@ -713,7 +694,7 @@ def ops_dashboard():
 
         const messages = data.messages || [];
         if (messages.length === 0) {
-          container.innerHTML = `<p class="text-zinc-600 text-center py-10 font-mono text-xs">No WhatsApp messages from ${riderId}.</p>`;
+          container.innerHTML = `<p class="text-zinc-500 text-center py-10 font-mono text-xs">No WhatsApp messages from ${riderId}.</p>`;
           return;
         }
 
@@ -721,8 +702,8 @@ def ops_dashboard():
           <div class="space-y-2">
             <!-- Rider message -->
             <div class="flex justify-start">
-              <div class="max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-2.5 bg-obsidian-850 border border-gold-900/40 text-xs text-zinc-200">
-                <p class="font-semibold text-[10px] text-gold-400/80 mb-0.5">Rider (${m.rider_id})</p>
+              <div style="background: #0a0a0a; border: 1px solid rgba(229, 184, 66, 0.2);" class="max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-xs text-zinc-200">
+                <p class="font-bold text-[10px] text-amber-400/90 mb-0.5">Rider (${m.rider_id})</p>
                 <p>${m.text}</p>
                 <span class="text-[9px] text-zinc-500 block text-right mt-1 font-mono">${new Date(m.received_at).toLocaleTimeString()}</span>
               </div>
@@ -730,10 +711,10 @@ def ops_dashboard():
             <!-- Agent reply -->
             ${m.reply ? `
               <div class="flex justify-end">
-                <div class="max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-2.5 bg-gold-500/10 border border-gold-500/30 text-xs text-gold-100">
-                  <p class="font-semibold text-[10px] text-gold-400 mb-0.5">QuickDrop Agent ⚡</p>
+                <div style="background: rgba(245, 197, 66, 0.1); border: 1px solid rgba(245, 197, 66, 0.35);" class="max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-2.5 text-xs text-amber-100">
+                  <p class="font-bold text-[10px] text-amber-300 mb-0.5">QuickDrop Agent ⚡</p>
                   <p>${m.reply}</p>
-                  <span class="text-[9px] text-gold-400/60 block text-right mt-1 font-mono">${new Date(m.created_at).toLocaleTimeString()}</span>
+                  <span class="text-[9px] text-amber-400/70 block text-right mt-1 font-mono">${new Date(m.created_at).toLocaleTimeString()}</span>
                 </div>
               </div>
             ` : ''}
@@ -752,17 +733,17 @@ def ops_dashboard():
         if (!payouts || payouts.length === 0) return;
 
         tbody.innerHTML = payouts.slice().reverse().map(p => `
-          <tr class="hover:bg-obsidian-850/60 transition">
-            <td class="px-4 py-2.5 text-gold-400 font-bold">${p.payout_id || '—'}</td>
-            <td class="px-4 py-2.5 text-white font-bold cursor-pointer hover:underline" onclick="selectRider('${p.rider_id}')">${p.rider_id}</td>
-            <td class="px-4 py-2.5 font-bold text-gold-300">₹${p.amount}</td>
-            <td class="px-4 py-2.5 text-zinc-400 max-w-xs truncate font-sans">${p.reference || 'Dispute settlement'}</td>
+          <tr class="hover:bg-zinc-900/60 transition">
+            <td class="px-4 py-2.5 text-amber-400 font-bold">${p.payout_id || '—'}</td>
+            <td class="px-4 py-2.5 text-white font-bold cursor-pointer hover:underline hover:text-amber-300" onclick="selectRider('${p.rider_id}')">${p.rider_id}</td>
+            <td class="px-4 py-2.5 font-bold text-amber-300">₹${p.amount}</td>
+            <td class="px-4 py-2.5 text-zinc-300 max-w-xs truncate font-sans">${p.reference || 'Dispute settlement'}</td>
             <td class="px-4 py-2.5">
-              <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-gold-500/20 text-gold-300 border border-gold-500/30">
+              <span class="gold-badge px-2 py-0.5 rounded text-[10px] uppercase font-bold">
                 ${p.status || 'processed'}
               </span>
             </td>
-            <td class="px-4 py-2.5 text-right text-zinc-500 text-[11px]">${p.created_at || '—'}</td>
+            <td class="px-4 py-2.5 text-right text-zinc-400 text-[11px]">${p.created_at || '—'}</td>
           </tr>
         `).join('');
       } catch (e) {
@@ -777,10 +758,11 @@ def ops_dashboard():
       selectRider(activeRider);
     }
 
-    // Auto-refresh every 8 seconds
+    // Auto-refresh every 6 seconds
     refreshDashboard();
-    setInterval(refreshDashboard, 8000);
+    setInterval(refreshDashboard, 6000);
   </script>
 </body>
 </html>
     """
+    return HTMLResponse(content=html)
