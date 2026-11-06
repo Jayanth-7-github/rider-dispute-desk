@@ -11,8 +11,8 @@ DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "conversations.jso
 
 
 def run_evals(service_url: str, payswift_url: Optional[str] = None):
-    service_url = service_url.rstrip("/")
-    payswift_url = (payswift_url or os.getenv("PAYSWIFT_BASE_URL", "http://localhost:8081")).rstrip("/")
+    service_url = service_url.rstrip("/").replace("localhost", "127.0.0.1")
+    payswift_url = (payswift_url or os.getenv("PAYSWIFT_BASE_URL", "http://127.0.0.1:8081")).rstrip("/").replace("localhost", "127.0.0.1")
 
     print("=" * 80)
     print(f"  QUICKDROP RIDER PAYOUT DISPUTE DESK - EVALUATION SUITE")
@@ -20,7 +20,7 @@ def run_evals(service_url: str, payswift_url: Optional[str] = None):
     print(f"  PaySwift URL:    {payswift_url}")
     print("=" * 80)
 
-    # Health check & PaySwift discovery
+    # 1. Health check & PaySwift discovery
     try:
         with httpx.Client(timeout=5.0) as client:
             res = client.get(f"{service_url}/health")
@@ -28,12 +28,40 @@ def run_evals(service_url: str, payswift_url: Optional[str] = None):
                 print(f"[FAIL] Service health check returned HTTP {res.status_code}")
                 sys.exit(1)
             health_data = res.json()
-            if not os.getenv("PAYSWIFT_BASE_URL") and payswift_url == "http://localhost:8081":
+            if not os.getenv("PAYSWIFT_BASE_URL") and payswift_url in ("http://127.0.0.1:8081", "http://localhost:8081"):
                 if health_data.get("payswift_url"):
-                    payswift_url = health_data["payswift_url"].rstrip("/")
+                    payswift_url = health_data["payswift_url"].rstrip("/").replace("localhost", "127.0.0.1")
     except Exception as e:
         print(f"[FAIL] Could not connect to target service at {service_url}: {e}")
+        print("  -> Ensure your app is running: uvicorn app.main:app --port 8000")
         sys.exit(1)
+
+    # 2. PaySwift Health Check
+    payswift_running = False
+    try:
+        with httpx.Client(timeout=3.0) as client:
+            ps_res = client.get(f"{payswift_url}/health")
+            if ps_res.status_code == 200:
+                payswift_running = True
+    except Exception:
+        pass
+
+    if not payswift_running:
+        print(f"\n[WARNING] PaySwift sandbox is not reachable at {payswift_url}.")
+        print("  Attempting to start local PaySwift sandbox automatically...")
+        try:
+            import threading
+            from payswift.mock_server import Handler as PaySwiftHandler, ThreadingHTTPServer
+            ps_server = ThreadingHTTPServer(("127.0.0.1", 8081), PaySwiftHandler)
+            ps_thread = threading.Thread(target=ps_server.serve_forever, daemon=True)
+            ps_thread.start()
+            time.sleep(1.0)
+            payswift_url = "http://127.0.0.1:8081"
+            print("  PaySwift sandbox started on http://127.0.0.1:8081!")
+        except Exception as ps_err:
+            print(f"[FAIL] Could not start PaySwift: {ps_err}")
+            print("  -> Please run PaySwift in another terminal: python payswift/mock_server.py")
+            sys.exit(1)
 
     with open(DATA_PATH, mode="r", encoding="utf-8") as f:
         scenarios: List[Dict[str, Any]] = json.load(f)

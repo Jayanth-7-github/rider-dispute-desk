@@ -11,7 +11,7 @@ from app.policy import IST, get_ist_date_str, normalize_rider_id
 
 logger = logging.getLogger("payswift")
 
-DEFAULT_PAYSWIFT_URL = os.getenv("PAYSWIFT_BASE_URL", "http://localhost:8081").rstrip("/")
+DEFAULT_PAYSWIFT_URL = os.getenv("PAYSWIFT_BASE_URL", "http://127.0.0.1:8081").rstrip("/").replace("localhost", "127.0.0.1")
 
 # Global in-memory ledger used when PAYSWIFT_MOCK=1 or in local test mode
 _mock_payouts: List[Dict[str, Any]] = []
