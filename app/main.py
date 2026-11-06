@@ -69,7 +69,11 @@ class OpsActionRequest(BaseModel):
 # Endpoints
 @app.get("/health")
 def health():
-    return {"status": "ok", "timestamp": datetime.now(IST).isoformat()}
+    return {
+        "status": "ok",
+        "timestamp": datetime.now(IST).isoformat(),
+        "payswift_url": payswift.base_url
+    }
 
 
 @app.post("/messages", response_model=MessageResponse)
@@ -399,3 +403,4 @@ def ops_dashboard():
 </body>
 </html>
     """
+

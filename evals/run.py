@@ -20,13 +20,17 @@ def run_evals(service_url: str, payswift_url: Optional[str] = None):
     print(f"  PaySwift URL:    {payswift_url}")
     print("=" * 80)
 
-    # Health check
+    # Health check & PaySwift discovery
     try:
         with httpx.Client(timeout=5.0) as client:
             res = client.get(f"{service_url}/health")
             if res.status_code != 200:
                 print(f"[FAIL] Service health check returned HTTP {res.status_code}")
                 sys.exit(1)
+            health_data = res.json()
+            if not os.getenv("PAYSWIFT_BASE_URL") and payswift_url == "http://localhost:8081":
+                if health_data.get("payswift_url"):
+                    payswift_url = health_data["payswift_url"].rstrip("/")
     except Exception as e:
         print(f"[FAIL] Could not connect to target service at {service_url}: {e}")
         sys.exit(1)
@@ -212,3 +216,4 @@ if __name__ == "__main__":
     target = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8000"
     ps_target = sys.argv[2] if len(sys.argv) > 2 else None
     run_evals(target, ps_target)
+

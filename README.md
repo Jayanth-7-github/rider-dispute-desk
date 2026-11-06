@@ -101,3 +101,4 @@ The system enforces a strict boundary between probabilistic LLM natural language
 
 - **Audio/Voice Processing**: Voice notes on WhatsApp were not implemented; the vendor interface is text-only.
 - **Direct GPS Trace Recalculation**: Automated re-snapping of raw GPS points for distance disputes was deferred to ops investigation tools.
+
