@@ -177,151 +177,167 @@ def reset_endpoint():
 
 # Ops Dashboard HTML Page
 @app.get("/ops", response_class=HTMLResponse)
+@app.get("/ops-desk", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
 @app.get("/", response_class=HTMLResponse)
-def ops_dashboard(response: Response):
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
+def ops_dashboard():
+    headers = {
+        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
 
     html = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QuickDrop — Rider Payout Dispute Desk</title>
+  <title>QuickDrop — Rider Dispute Desk</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
-    /* Direct Hardcoded Luxury Obsidian & Radiant Gold Palette */
+    /* DBS BANK BRAND REBRANDING PALETTE: STRONG RED (#C50022), PURE BLACK (#000000), WHITE (#FFFFFF) */
     :root {
-      --bg-black: #050505;
-      --card-black: #0c0c0c;
-      --card-border: rgba(229, 184, 66, 0.22);
-      --gold-primary: #F5C542;
-      --gold-light: #FFF0B3;
-      --gold-dim: #9E7A22;
-      --gold-glow: rgba(245, 197, 66, 0.12);
+      --strong-red: #C50022;
+      --red-hover: #E00028;
+      --red-glow: rgba(197, 0, 34, 0.4);
+      --red-subtle: rgba(197, 0, 34, 0.12);
+      --pure-black: #000000;
+      --card-black: #080808;
+      --card-border: #1a1a1a;
+      --white: #FFFFFF;
+      --cream-white: #B5AC8A;
+      --muted-white: #888888;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
-      background-color: #040404 !important;
-      color: #e5e5e5 !important;
+      background-color: #000000 !important;
+      color: #FFFFFF !important;
       font-family: 'Plus Jakarta Sans', sans-serif !important;
     }
 
-    .gold-header {
-      background: linear-gradient(135deg, #FFF8DC 0%, #F5C542 45%, #E5B842 75%, #B8860B 100%) !important;
-      -webkit-background-clip: text !important;
-      -webkit-text-fill-color: transparent !important;
+    .brand-red {
+      color: #C50022 !important;
+    }
+
+    .bg-brand-red {
+      background-color: #C50022 !important;
+    }
+
+    .dbs-card {
+      background: #080808 !important;
+      border: 1px solid #1a1a1a !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9) !important;
+      border-radius: 12px !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    }
+
+    .dbs-card:hover {
+      border-color: #C50022 !important;
+      box-shadow: 0 6px 28px rgba(197, 0, 34, 0.18) !important;
+    }
+
+    .red-btn {
+      background: #C50022 !important;
+      color: #FFFFFF !important;
       font-weight: 800 !important;
-      letter-spacing: 0.04em !important;
-    }
-
-    .gold-card {
-      background: #0a0a0a !important;
-      border: 1px solid rgba(229, 184, 66, 0.22) !important;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.8), 0 0 15px rgba(229, 184, 66, 0.05) !important;
-      border-radius: 16px !important;
-    }
-
-    .gold-card:hover {
-      border-color: rgba(245, 197, 66, 0.45) !important;
-      box-shadow: 0 6px 30px rgba(0, 0, 0, 0.9), 0 0 25px rgba(229, 184, 66, 0.12) !important;
-    }
-
-    .gold-btn {
-      background: linear-gradient(135deg, #FCE07A 0%, #F5C542 50%, #C69226 100%) !important;
-      color: #000000 !important;
-      font-weight: 800 !important;
-      border: none !important;
-      box-shadow: 0 2px 10px rgba(245, 197, 66, 0.3) !important;
+      border: 1px solid #C50022 !important;
+      box-shadow: 0 2px 12px rgba(197, 0, 34, 0.4) !important;
       transition: all 0.2s ease !important;
     }
-    .gold-btn:hover {
-      background: linear-gradient(135deg, #FFF3B8 0%, #FCE07A 50%, #D4A017 100%) !important;
-      box-shadow: 0 4px 18px rgba(245, 197, 66, 0.45) !important;
+    .red-btn:hover {
+      background: #E00028 !important;
+      border-color: #E00028 !important;
+      box-shadow: 0 4px 20px rgba(197, 0, 34, 0.6) !important;
       transform: translateY(-1px) !important;
     }
 
-    .gold-btn-outline {
-      background: rgba(245, 197, 66, 0.05) !important;
-      border: 1px solid rgba(245, 197, 66, 0.35) !important;
-      color: #FCE07A !important;
+    .red-btn-outline {
+      background: #000000 !important;
+      border: 1px solid #2a2a2a !important;
+      color: #FFFFFF !important;
       transition: all 0.2s ease !important;
     }
-    .gold-btn-outline:hover {
-      background: rgba(245, 197, 66, 0.15) !important;
-      border-color: #F5C542 !important;
+    .red-btn-outline:hover {
+      background: rgba(197, 0, 34, 0.15) !important;
+      border-color: #C50022 !important;
       color: #FFFFFF !important;
     }
 
-    .gold-badge {
-      background: rgba(245, 197, 66, 0.12) !important;
-      border: 1px solid rgba(245, 197, 66, 0.35) !important;
-      color: #FCE07A !important;
+    .red-badge {
+      background: #C50022 !important;
+      color: #FFFFFF !important;
+      font-weight: 800 !important;
     }
 
-    .gold-input {
-      background: #0e0e0e !important;
-      border: 1px solid rgba(229, 184, 66, 0.25) !important;
+    .red-badge-outline {
+      background: rgba(197, 0, 34, 0.12) !important;
+      border: 1px solid #C50022 !important;
       color: #FFFFFF !important;
     }
-    .gold-input:focus {
-      border-color: #F5C542 !important;
-      outline: none !important;
-      box-shadow: 0 0 10px rgba(245, 197, 66, 0.25) !important;
+
+    .white-badge {
+      background: #141414 !important;
+      border: 1px solid #2e2e2e !important;
+      color: #FFFFFF !important;
     }
 
     /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #050505; }
-    ::-webkit-scrollbar-thumb { background: #2f2511; border-radius: 4px; border: 1px solid rgba(229, 184, 66, 0.3); }
-    ::-webkit-scrollbar-thumb:hover { background: #5c4314; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #000000; }
+    ::-webkit-scrollbar-thumb { background: #222222; border-radius: 3px; border: 1px solid #C50022; }
+    ::-webkit-scrollbar-thumb:hover { background: #C50022; }
 
-    @keyframes pulse-ring {
-      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(245, 197, 66, 0.7); }
-      50% { transform: scale(1.1); opacity: 0.8; box-shadow: 0 0 10px 4px rgba(245, 197, 66, 0.8); }
+    @keyframes pulse-red-ring {
+      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(197, 0, 34, 0.8); }
+      50% { transform: scale(1.15); opacity: 0.9; box-shadow: 0 0 12px 4px rgba(197, 0, 34, 0.7); }
     }
-    .gold-pulse-indicator { animation: pulse-ring 2.2s infinite ease-in-out; }
+    .red-pulse { animation: pulse-red-ring 2s infinite ease-in-out; }
   </style>
 </head>
-<body class="min-h-screen font-sans selection:bg-amber-400 selection:text-black antialiased">
+<body class="min-h-screen font-sans selection:bg-red-700 selection:text-white antialiased">
 
-  <!-- TOP EXECUTIVE NAVIGATION BAR -->
-  <header style="background: rgba(8, 8, 8, 0.95); border-bottom: 1px solid rgba(229, 184, 66, 0.25);" class="backdrop-blur-xl sticky top-0 z-50">
+  <!-- TOP BRAND REBRANDING HEADER BAR -->
+  <header style="background: #000000; border-bottom: 2px solid #C50022;" class="sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3.5">
-        <div style="background: linear-gradient(135deg, #FCE07A, #C69226); padding: 1px; border-radius: 12px;">
-          <div style="background: #070707; border-radius: 11px; width: 38px; height: 38px;" class="flex items-center justify-center font-bold text-amber-300 text-lg">
-            ⚡
-          </div>
+      <div class="flex items-center gap-4">
+        <!-- Logo Icon Box -->
+        <div style="background: #C50022; width: 42px; height: 42px; border-radius: 8px;" class="flex items-center justify-center font-black text-white text-xl tracking-tighter shadow-lg shadow-red-950">
+          QD
         </div>
         <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-lg font-bold tracking-wider gold-header uppercase">
-              QuickDrop Dispute Desk
+          <div class="flex items-center gap-3">
+            <h1 class="text-xl font-black tracking-wider text-white uppercase font-mono">
+              QUICKDROP <span class="brand-red">DISPUTE DESK</span>
             </h1>
-            <span class="gold-badge text-[10px] uppercase font-mono px-2 py-0.5 rounded-full font-bold">
-              Autonomous Agent Active
+            <span class="red-badge text-[10px] uppercase font-mono px-2.5 py-0.5 rounded tracking-wider">
+              AUTONOMOUS ACTIVE
             </span>
           </div>
-          <p class="text-xs text-zinc-400">Rider Payout Dispute Investigation & Autonomous Bank Clearance</p>
+          <p class="text-xs text-stone-400 font-mono">End-to-End Payout Dispute Resolution · Bank Clearance Engine</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3 text-xs">
-        <div style="background: #0a0a0a; border: 1px solid rgba(229, 184, 66, 0.25);" class="flex items-center gap-2 px-3 py-1.5 rounded-lg">
-          <span style="background: #F5C542;" class="w-2 h-2 rounded-full gold-pulse-indicator"></span>
-          <span class="font-mono text-amber-300 font-semibold">PaySwift: Connected</span>
+        <div style="background: #0a0a0a; border: 1px solid #1f1f1f;" class="flex items-center gap-2 px-3.5 py-1.5 rounded-md">
+          <span style="background: #C50022;" class="w-2.5 h-2.5 rounded-full red-pulse"></span>
+          <span class="font-mono text-white font-bold">PaySwift: Connected</span>
         </div>
-        <div style="background: #0a0a0a; border: 1px solid rgba(229, 184, 66, 0.25);" class="flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-zinc-400">
+        <div style="background: #0a0a0a; border: 1px solid #1f1f1f;" class="flex items-center gap-2 px-3 py-1.5 rounded-md font-mono text-stone-400">
           <span>IST: UTC+05:30</span>
         </div>
-        <button onclick="refreshDashboard()" class="gold-btn px-3.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer">
-          ↻ Refresh Data
+        <button onclick="refreshDashboard()" class="red-btn px-4 py-1.5 rounded-md text-xs font-black cursor-pointer uppercase tracking-wider">
+          ↻ REFRESH
         </button>
       </div>
     </div>
@@ -330,46 +346,46 @@ def ops_dashboard(response: Response):
   <!-- MAIN WRAPPER -->
   <main class="max-w-7xl mx-auto p-6 space-y-6">
 
-    <!-- EXECUTIVE METRICS STRIP -->
+    <!-- METRICS STRIP -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <!-- Metric 1 -->
-      <div class="gold-card p-5">
+      <div class="dbs-card p-5 border-l-4 border-l-[#C50022]">
         <div class="flex justify-between items-start">
-          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300/80">Pending Approvals</p>
-          <span class="text-amber-400 text-sm">✦</span>
+          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-stone-400">Pending Approvals</p>
+          <span class="brand-red text-sm font-black">■</span>
         </div>
-        <p id="stat-approvals" class="text-3xl font-extrabold gold-header mt-2">0</p>
-        <p class="text-[11px] text-zinc-400 mt-1">Requires human clearance (> ₹200 / repeat)</p>
+        <p id="stat-approvals" class="text-3xl font-black text-white mt-2">0</p>
+        <p class="text-[11px] text-stone-400 mt-1">Requires human ops clearance (> ₹200 / repeat)</p>
       </div>
 
       <!-- Metric 2 -->
-      <div class="gold-card p-5">
+      <div class="dbs-card p-5 border-l-4 border-l-[#C50022]">
         <div class="flex justify-between items-start">
-          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300/80">Ops Escalations</p>
-          <span class="text-amber-400 text-sm">⚠</span>
+          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-stone-400">Ops Escalations</p>
+          <span class="brand-red text-sm font-black">■</span>
         </div>
-        <p id="stat-escalations" class="text-3xl font-extrabold text-amber-200 mt-2">0</p>
-        <p class="text-[11px] text-zinc-400 mt-1">Policy exceptions, fraud & security alerts</p>
+        <p id="stat-escalations" class="text-3xl font-black text-white mt-2">0</p>
+        <p class="text-[11px] text-stone-400 mt-1">Policy exceptions, fraud & security flags</p>
       </div>
 
       <!-- Metric 3 -->
-      <div class="gold-card p-5">
+      <div class="dbs-card p-5 border-l-4 border-l-[#C50022]">
         <div class="flex justify-between items-start">
-          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300/80">Auto-Pay Rule</p>
-          <span class="text-amber-400 text-sm">₹</span>
+          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-stone-400">Auto-Pay Rule</p>
+          <span class="brand-red text-sm font-black">₹</span>
         </div>
-        <p class="text-3xl font-extrabold gold-header mt-2">≤ ₹200</p>
-        <p class="text-[11px] text-zinc-400 mt-1">Max 1 auto-pay / rider / IST calendar day</p>
+        <p class="text-3xl font-black brand-red mt-2">≤ ₹200</p>
+        <p class="text-[11px] text-stone-400 mt-1">Max 1 auto-pay / rider / IST calendar day</p>
       </div>
 
       <!-- Metric 4 -->
-      <div class="gold-card p-5">
+      <div class="dbs-card p-5 border-l-4 border-l-[#C50022]">
         <div class="flex justify-between items-start">
-          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-amber-300/80">Policy Window</p>
-          <span class="text-amber-400 text-sm">⏳</span>
+          <p class="text-[11px] font-mono font-bold uppercase tracking-wider text-stone-400">Policy Window</p>
+          <span class="brand-red text-sm font-black">■</span>
         </div>
-        <p class="text-3xl font-extrabold gold-header mt-2">7 Days</p>
-        <p class="text-[11px] text-zinc-400 mt-1">Strict IST calendar boundary</p>
+        <p class="text-3xl font-black text-white mt-2">7 Days</p>
+        <p class="text-[11px] text-stone-400 mt-1">Strict IST calendar boundary</p>
       </div>
     </div>
 
@@ -378,15 +394,15 @@ def ops_dashboard(response: Response):
 
       <!-- LEFT COLUMN: OPS PENDING QUEUE (7 Cols) -->
       <div class="lg:col-span-7 space-y-6">
-        <section class="gold-card overflow-hidden">
-          <div style="background: #080808; border-bottom: 1px solid rgba(229, 184, 66, 0.2);" class="p-5 flex items-center justify-between">
+        <section class="dbs-card overflow-hidden">
+          <div style="background: #0c0c0c; border-bottom: 2px solid #C50022;" class="p-5 flex items-center justify-between">
             <div>
-              <h2 class="text-base font-bold text-white tracking-wide gold-header flex items-center gap-2">
-                Operations Action Queue
+              <h2 class="text-sm font-black text-white tracking-widest uppercase font-mono flex items-center gap-2">
+                <span class="brand-red font-black">///</span> Operations Action Queue
               </h2>
-              <p class="text-xs text-zinc-400">Items awaiting human authorization before fund disbursement</p>
+              <p class="text-xs text-stone-400">Items requiring human sign-off before banking payout</p>
             </div>
-            <span id="pending-count-badge" class="gold-badge px-3 py-1 rounded-full text-[11px] font-mono font-bold">
+            <span id="pending-count-badge" class="red-badge px-3 py-1 rounded text-[11px] font-mono font-bold uppercase tracking-wider">
               0 Items
             </span>
           </div>
@@ -394,7 +410,7 @@ def ops_dashboard(response: Response):
           <!-- Table Container -->
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs">
-              <thead style="background: #060606; border-bottom: 1px solid rgba(229, 184, 66, 0.2);" class="font-mono text-[10px] uppercase tracking-wider text-amber-300/90">
+              <thead style="background: #050505; border-bottom: 1px solid #1c1c1c;" class="font-mono text-[10px] uppercase tracking-wider text-stone-400">
                 <tr>
                   <th class="px-4 py-3.5">Item</th>
                   <th class="px-4 py-3.5">Rider</th>
@@ -404,10 +420,10 @@ def ops_dashboard(response: Response):
                   <th class="px-4 py-3.5 text-right">Clearance</th>
                 </tr>
               </thead>
-              <tbody id="pending-table-body" class="divide-y divide-zinc-900 text-zinc-300 font-mono">
+              <tbody id="pending-table-body" class="divide-y divide-[#141414] text-white font-mono">
                 <tr>
-                  <td colspan="6" class="px-4 py-10 text-center text-zinc-500 font-sans">
-                    No pending items. The queue is fully cleared.
+                  <td colspan="6" class="px-4 py-10 text-center text-stone-500 font-sans">
+                    No pending items. The queue is completely clear.
                   </td>
                 </tr>
               </tbody>
@@ -415,55 +431,55 @@ def ops_dashboard(response: Response):
           </div>
         </section>
 
-        <!-- ACTIVE RIDERS FAST-SWITCHER -->
-        <section class="gold-card p-5">
+        <!-- ACTIVE RIDERS DIRECTORY -->
+        <section class="dbs-card p-5">
           <div class="flex items-center justify-between mb-3.5">
-            <h3 class="text-sm font-bold gold-header uppercase tracking-wider">
-              Recent Rider Directory
+            <h3 class="text-xs font-black uppercase tracking-widest text-white font-mono flex items-center gap-2">
+              <span class="brand-red">///</span> Recent Rider Directory
             </h3>
-            <span class="text-[11px] text-zinc-400 font-mono">Click to inspect</span>
+            <span class="text-[11px] text-stone-400 font-mono">Select to inspect dossier</span>
           </div>
           <div id="riders-list" class="flex flex-wrap gap-2">
-            <span class="text-xs text-zinc-500">Loading riders...</span>
+            <span class="text-xs text-stone-500">Loading riders...</span>
           </div>
         </section>
       </div>
 
       <!-- RIGHT COLUMN: RIDER AUDIT & CHAT EXPLORER (5 Cols) -->
       <div class="lg:col-span-5 space-y-6">
-        <section class="gold-card p-5 flex flex-col h-full min-h-[580px]">
+        <section class="dbs-card p-5 flex flex-col h-full min-h-[580px]">
           
           <!-- Dossier Top Bar -->
-          <div style="border-bottom: 1px solid rgba(229, 184, 66, 0.2);" class="flex items-center justify-between pb-4">
+          <div style="border-bottom: 1px solid #1c1c1c;" class="flex items-center justify-between pb-4">
             <div class="flex items-center gap-3">
-              <div style="background: #141208; border: 1px solid rgba(229, 184, 66, 0.4);" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-amber-300 font-mono text-sm">
+              <div style="background: #C50022;" class="w-10 h-10 rounded-md flex items-center justify-center font-black text-white font-mono text-sm shadow-md">
                 <span id="dossier-avatar">R03</span>
               </div>
               <div>
-                <h3 id="dossier-rider-id" class="font-bold text-white text-sm tracking-wide">R003 — Imran Khan</h3>
-                <p id="dossier-meta" class="text-xs text-zinc-400 font-mono">Bengaluru · Joined 2024-03-15</p>
+                <h3 id="dossier-rider-id" class="font-black text-white text-sm tracking-wide font-mono">R003 — Imran Khan</h3>
+                <p id="dossier-meta" class="text-xs text-stone-400 font-mono">Bengaluru · Joined 2024-03-15</p>
               </div>
             </div>
-            <div style="background: #050505; border: 1px solid rgba(229, 184, 66, 0.25);" class="flex gap-1.5 p-1 rounded-lg font-mono text-[11px]">
-              <button onclick="switchTab('trace')" id="tab-btn-trace" class="px-3 py-1 rounded-md font-bold gold-btn">
-                Trace
+            <div style="background: #000000; border: 1px solid #222222;" class="flex gap-1 p-1 rounded-md font-mono text-[11px]">
+              <button onclick="switchTab('trace')" id="tab-btn-trace" class="px-3.5 py-1 rounded font-black red-btn cursor-pointer">
+                TRACE
               </button>
-              <button onclick="switchTab('chat')" id="tab-btn-chat" class="px-3 py-1 rounded-md font-semibold text-zinc-400 hover:text-white">
-                Chat
+              <button onclick="switchTab('chat')" id="tab-btn-chat" class="px-3.5 py-1 rounded font-bold text-stone-400 hover:text-white cursor-pointer">
+                CHAT
               </button>
             </div>
           </div>
 
           <!-- Trace View Tab -->
           <div id="tab-content-trace" class="flex-1 mt-4 overflow-y-auto space-y-3 max-h-[520px] pr-1">
-            <div class="text-center py-12 text-zinc-500 font-mono text-xs">
+            <div class="text-center py-12 text-stone-500 font-mono text-xs">
               Select any rider or pending item on the left to review their step-by-step autonomous trace.
             </div>
           </div>
 
           <!-- Chat View Tab (Hidden by default) -->
           <div id="tab-content-chat" class="hidden flex-1 mt-4 overflow-y-auto space-y-3 max-h-[520px] pr-1 font-sans">
-            <div class="text-center py-12 text-zinc-500 font-mono text-xs">
+            <div class="text-center py-12 text-stone-500 font-mono text-xs">
               No messages selected.
             </div>
           </div>
@@ -474,20 +490,20 @@ def ops_dashboard(response: Response):
     </div>
 
     <!-- BOTTOM SECTION: PAYSWIFT LIVE LEDGER MONITOR -->
-    <section class="gold-card p-5">
+    <section class="dbs-card p-5">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2.5">
-          <span style="background: #F5C542;" class="w-2.5 h-2.5 rounded-full gold-pulse-indicator"></span>
-          <h3 class="text-sm font-bold gold-header uppercase tracking-wider">
-            PaySwift Live Banking Ledger
+          <span style="background: #C50022;" class="w-2.5 h-2.5 rounded-full red-pulse"></span>
+          <h3 class="text-xs font-black uppercase tracking-widest text-white font-mono flex items-center gap-2">
+            <span class="brand-red">///</span> PaySwift Live Banking Ledger
           </h3>
         </div>
-        <p class="text-[11px] text-zinc-400 font-mono">Reconciled against bank sandbox in real time</p>
+        <p class="text-[11px] text-stone-400 font-mono">Reconciled against bank API in real time</p>
       </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs font-mono">
-          <thead style="background: #060606; border-bottom: 1px solid rgba(229, 184, 66, 0.2);" class="uppercase text-[10px] tracking-wider text-amber-300/80">
+          <thead style="background: #050505; border-bottom: 1px solid #1c1c1c;" class="uppercase text-[10px] tracking-wider text-stone-400">
             <tr>
               <th class="px-4 py-2.5">Payout ID</th>
               <th class="px-4 py-2.5">Rider</th>
@@ -497,9 +513,9 @@ def ops_dashboard(response: Response):
               <th class="px-4 py-2.5 text-right">Timestamp</th>
             </tr>
           </thead>
-          <tbody id="payswift-ledger-body" class="divide-y divide-zinc-900 text-zinc-300">
+          <tbody id="payswift-ledger-body" class="divide-y divide-[#141414] text-white">
             <tr>
-              <td colspan="6" class="px-4 py-6 text-center text-zinc-500 font-sans">No recent transactions recorded yet.</td>
+              <td colspan="6" class="px-4 py-6 text-center text-stone-500 font-sans">No recent transactions recorded yet.</td>
             </tr>
           </tbody>
         </table>
@@ -520,13 +536,13 @@ def ops_dashboard(response: Response):
       const chatContent = document.getElementById('tab-content-chat');
 
       if (tab === 'trace') {
-        traceBtn.className = 'px-3 py-1 rounded-md font-bold gold-btn';
-        chatBtn.className = 'px-3 py-1 rounded-md font-semibold text-zinc-400 hover:text-white';
+        traceBtn.className = 'px-3.5 py-1 rounded font-black red-btn cursor-pointer';
+        chatBtn.className = 'px-3.5 py-1 rounded font-bold text-stone-400 hover:text-white cursor-pointer';
         traceContent.classList.remove('hidden');
         chatContent.classList.add('hidden');
       } else {
-        chatBtn.className = 'px-3 py-1 rounded-md font-bold gold-btn';
-        traceBtn.className = 'px-3 py-1 rounded-md font-semibold text-zinc-400 hover:text-white';
+        chatBtn.className = 'px-3.5 py-1 rounded font-black red-btn cursor-pointer';
+        traceBtn.className = 'px-3.5 py-1 rounded font-bold text-stone-400 hover:text-white cursor-pointer';
         chatContent.classList.remove('hidden');
         traceContent.classList.add('hidden');
       }
@@ -544,35 +560,35 @@ def ops_dashboard(response: Response):
         items.forEach(i => i.type === 'approval' ? approvals++ : escalations++);
         document.getElementById('stat-approvals').innerText = approvals;
         document.getElementById('stat-escalations').innerText = escalations;
-        badge.innerText = `${items.length} Pending`;
+        badge.innerText = `${items.length} PENDING`;
 
         if (!items || items.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-zinc-500 font-sans">All pending items are cleared. Operations desk is running smoothly.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-stone-500 font-sans">All pending items are cleared. Operations desk is running smoothly.</td></tr>';
           return;
         }
 
         tbody.innerHTML = items.map(item => `
-          <tr class="hover:bg-zinc-900/60 transition">
-            <td class="px-4 py-3 text-amber-400 font-bold">${item.id}</td>
-            <td class="px-4 py-3 text-white font-bold cursor-pointer hover:underline hover:text-amber-300" onclick="selectRider('${item.rider_id}')">
+          <tr class="hover:bg-[#111111] transition">
+            <td class="px-4 py-3 font-bold brand-red font-mono">${item.id}</td>
+            <td class="px-4 py-3 text-white font-bold cursor-pointer hover:underline hover:text-[#C50022]" onclick="selectRider('${item.rider_id}')">
               ${item.rider_id}
             </td>
             <td class="px-4 py-3">
-              <span class="px-2 py-0.5 rounded text-[10px] tracking-wider font-bold ${
+              <span class="px-2 py-0.5 rounded text-[10px] tracking-wider font-mono font-bold ${
                 item.type === 'approval' 
-                  ? 'gold-badge' 
-                  : 'bg-amber-900/30 text-amber-300 border border-amber-600/40'
+                  ? 'red-badge' 
+                  : 'white-badge'
               }">
                 ${item.type.toUpperCase()}
               </span>
             </td>
-            <td class="px-4 py-3 font-bold text-amber-300">${item.amount ? '₹' + item.amount : '—'}</td>
-            <td class="px-4 py-3 text-zinc-300 max-w-xs truncate font-sans" title="${item.reason}">${item.reason}</td>
+            <td class="px-4 py-3 font-bold brand-red font-mono">${item.amount ? '₹' + item.amount : '—'}</td>
+            <td class="px-4 py-3 text-stone-300 max-w-xs truncate font-sans" title="${item.reason}">${item.reason}</td>
             <td class="px-4 py-3 text-right space-x-2 font-sans">
-              <button onclick="actionItem('${item.id}', 'approve')" class="gold-btn px-2.5 py-1 rounded text-[11px] cursor-pointer">
+              <button onclick="actionItem('${item.id}', 'approve')" class="red-btn px-3 py-1 rounded text-[11px] cursor-pointer">
                 Approve
               </button>
-              <button onclick="actionItem('${item.id}', 'reject')" class="gold-btn-outline px-2.5 py-1 rounded text-[11px] cursor-pointer hover:text-rose-300">
+              <button onclick="actionItem('${item.id}', 'reject')" class="red-btn-outline px-3 py-1 rounded text-[11px] cursor-pointer">
                 Reject
               </button>
             </td>
@@ -608,12 +624,12 @@ def ops_dashboard(response: Response):
         if (!riders || riders.length === 0) return;
 
         container.innerHTML = riders.map(r => `
-          <button onclick="selectRider('${r.rider_id}')" class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold transition cursor-pointer ${
+          <button onclick="selectRider('${r.rider_id}')" class="px-3 py-1 rounded text-xs font-mono font-bold transition cursor-pointer ${
             activeRider === r.rider_id 
-              ? 'gold-btn' 
-              : 'gold-btn-outline'
+              ? 'red-btn' 
+              : 'red-btn-outline'
           }">
-            ${r.rider_id} ${r.message_count > 0 ? `<span class="opacity-75 text-[10px]">(${r.message_count})</span>` : ''}
+            ${r.rider_id} ${r.message_count > 0 ? `<span class="opacity-80 text-[10px]">(${r.message_count})</span>` : ''}
           </button>
         `).join('');
       } catch (e) {
@@ -634,42 +650,42 @@ def ops_dashboard(response: Response):
 
     async function loadTrace(riderId) {
       const container = document.getElementById('tab-content-trace');
-      container.innerHTML = '<p class="text-zinc-500 text-center py-8 font-mono text-xs">Loading audit trace...</p>';
+      container.innerHTML = '<p class="text-stone-500 text-center py-8 font-mono text-xs">Loading audit trace...</p>';
       try {
         const res = await fetch(`/trace/${riderId}`);
         const trace = await res.json();
         if (!trace || trace.length === 0) {
-          container.innerHTML = `<p class="text-zinc-500 text-center py-10 font-mono text-xs">No audit trace recorded yet for ${riderId}.</p>`;
+          container.innerHTML = `<p class="text-stone-500 text-center py-10 font-mono text-xs">No audit trace recorded yet for ${riderId}.</p>`;
           return;
         }
 
         container.innerHTML = trace.map(step => {
-          let badgeClass = 'gold-badge';
-          if (step.type === 'message_in') badgeClass = 'bg-sky-950/60 text-sky-300 border border-sky-600/40';
-          if (step.type === 'tool_call') badgeClass = 'gold-badge';
-          if (step.type === 'decision') badgeClass = 'bg-amber-950/60 text-amber-200 border border-amber-600/40';
-          if (step.type === 'reply') badgeClass = 'bg-emerald-950/60 text-emerald-300 border border-emerald-600/40';
+          let badgeClass = 'white-badge';
+          if (step.type === 'message_in') badgeClass = 'white-badge';
+          if (step.type === 'tool_call') badgeClass = 'red-badge';
+          if (step.type === 'decision') badgeClass = 'red-badge-outline';
+          if (step.type === 'reply') badgeClass = 'red-badge';
 
           return `
-            <div style="background: #070707; border: 1px solid rgba(229, 184, 66, 0.2);" class="p-3.5 rounded-xl space-y-1.5 text-xs font-mono">
+            <div style="background: #090909; border: 1px solid #1a1a1a;" class="p-3.5 rounded-lg space-y-1.5 text-xs font-mono">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="px-2 py-0.5 rounded text-[10px] uppercase font-bold ${badgeClass}">
                     ${step.type}
                   </span>
-                  <span class="font-bold text-amber-200">${step.name}</span>
+                  <span class="font-bold text-white">${step.name}</span>
                 </div>
-                <span class="text-[10px] text-zinc-500">${new Date(step.at).toLocaleTimeString()}</span>
+                <span class="text-[10px] text-stone-500">${new Date(step.at).toLocaleTimeString()}</span>
               </div>
               ${step.input ? `
-                <div style="background: #020202; border: 1px solid rgba(229, 184, 66, 0.1);" class="mt-1.5 p-2 rounded-lg text-[11px] text-zinc-400">
-                  <span class="text-amber-400/80 font-bold block text-[10px] uppercase">Input</span>
+                <div style="background: #000000; border: 1px solid #1f1f1f;" class="mt-1.5 p-2 rounded text-[11px] text-stone-300">
+                  <span class="brand-red font-bold block text-[10px] uppercase font-mono">Input</span>
                   <pre class="overflow-x-auto whitespace-pre-wrap">${JSON.stringify(step.input, null, 2)}</pre>
                 </div>
               ` : ''}
               ${step.output ? `
-                <div style="background: #020202; border: 1px solid rgba(229, 184, 66, 0.1);" class="mt-1.5 p-2 rounded-lg text-[11px] text-amber-200/90">
-                  <span class="text-amber-400/80 font-bold block text-[10px] uppercase">Output</span>
+                <div style="background: #000000; border: 1px solid #1f1f1f;" class="mt-1.5 p-2 rounded text-[11px] text-white">
+                  <span class="brand-red font-bold block text-[10px] uppercase font-mono">Output</span>
                   <pre class="overflow-x-auto whitespace-pre-wrap">${typeof step.output === 'object' ? JSON.stringify(step.output, null, 2) : step.output}</pre>
                 </div>
               ` : ''}
@@ -677,7 +693,7 @@ def ops_dashboard(response: Response):
           `;
         }).join('');
       } catch (e) {
-        container.innerHTML = `<p class="text-rose-400 text-center py-6 font-mono text-xs">Error: ${e.message}</p>`;
+        container.innerHTML = `<p class="text-red-400 text-center py-6 font-mono text-xs">Error: ${e.message}</p>`;
       }
     }
 
@@ -694,7 +710,7 @@ def ops_dashboard(response: Response):
 
         const messages = data.messages || [];
         if (messages.length === 0) {
-          container.innerHTML = `<p class="text-zinc-500 text-center py-10 font-mono text-xs">No WhatsApp messages from ${riderId}.</p>`;
+          container.innerHTML = `<p class="text-stone-500 text-center py-10 font-mono text-xs">No WhatsApp messages from ${riderId}.</p>`;
           return;
         }
 
@@ -702,19 +718,19 @@ def ops_dashboard(response: Response):
           <div class="space-y-2">
             <!-- Rider message -->
             <div class="flex justify-start">
-              <div style="background: #0a0a0a; border: 1px solid rgba(229, 184, 66, 0.2);" class="max-w-[85%] rounded-2xl rounded-tl-sm px-4 py-2.5 text-xs text-zinc-200">
-                <p class="font-bold text-[10px] text-amber-400/90 mb-0.5">Rider (${m.rider_id})</p>
+              <div style="background: #0f0f0f; border: 1px solid #222222;" class="max-w-[85%] rounded-lg px-4 py-2.5 text-xs text-white">
+                <p class="font-bold text-[10px] text-stone-400 mb-0.5 font-mono">Rider (${m.rider_id})</p>
                 <p>${m.text}</p>
-                <span class="text-[9px] text-zinc-500 block text-right mt-1 font-mono">${new Date(m.received_at).toLocaleTimeString()}</span>
+                <span class="text-[9px] text-stone-500 block text-right mt-1 font-mono">${new Date(m.received_at).toLocaleTimeString()}</span>
               </div>
             </div>
             <!-- Agent reply -->
             ${m.reply ? `
               <div class="flex justify-end">
-                <div style="background: rgba(245, 197, 66, 0.1); border: 1px solid rgba(245, 197, 66, 0.35);" class="max-w-[85%] rounded-2xl rounded-tr-sm px-4 py-2.5 text-xs text-amber-100">
-                  <p class="font-bold text-[10px] text-amber-300 mb-0.5">QuickDrop Agent ⚡</p>
+                <div style="background: rgba(197, 0, 34, 0.12); border: 1px solid #C50022;" class="max-w-[85%] rounded-lg px-4 py-2.5 text-xs text-white">
+                  <p class="font-bold text-[10px] brand-red mb-0.5 font-mono">QuickDrop Agent ///</p>
                   <p>${m.reply}</p>
-                  <span class="text-[9px] text-amber-400/70 block text-right mt-1 font-mono">${new Date(m.created_at).toLocaleTimeString()}</span>
+                  <span class="text-[9px] text-stone-400 block text-right mt-1 font-mono">${new Date(m.created_at).toLocaleTimeString()}</span>
                 </div>
               </div>
             ` : ''}
@@ -733,17 +749,17 @@ def ops_dashboard(response: Response):
         if (!payouts || payouts.length === 0) return;
 
         tbody.innerHTML = payouts.slice().reverse().map(p => `
-          <tr class="hover:bg-zinc-900/60 transition">
-            <td class="px-4 py-2.5 text-amber-400 font-bold">${p.payout_id || '—'}</td>
-            <td class="px-4 py-2.5 text-white font-bold cursor-pointer hover:underline hover:text-amber-300" onclick="selectRider('${p.rider_id}')">${p.rider_id}</td>
-            <td class="px-4 py-2.5 font-bold text-amber-300">₹${p.amount}</td>
-            <td class="px-4 py-2.5 text-zinc-300 max-w-xs truncate font-sans">${p.reference || 'Dispute settlement'}</td>
+          <tr class="hover:bg-[#111111] transition">
+            <td class="px-4 py-2.5 brand-red font-bold font-mono">${p.payout_id || '—'}</td>
+            <td class="px-4 py-2.5 text-white font-bold cursor-pointer hover:underline hover:text-[#C50022]" onclick="selectRider('${p.rider_id}')">${p.rider_id}</td>
+            <td class="px-4 py-2.5 font-black text-white font-mono">₹${p.amount}</td>
+            <td class="px-4 py-2.5 text-stone-300 max-w-xs truncate font-sans">${p.reference || 'Dispute settlement'}</td>
             <td class="px-4 py-2.5">
-              <span class="gold-badge px-2 py-0.5 rounded text-[10px] uppercase font-bold">
+              <span class="red-badge px-2 py-0.5 rounded text-[10px] uppercase font-bold font-mono">
                 ${p.status || 'processed'}
               </span>
             </td>
-            <td class="px-4 py-2.5 text-right text-zinc-400 text-[11px]">${p.created_at || '—'}</td>
+            <td class="px-4 py-2.5 text-right text-stone-400 text-[11px] font-mono">${p.created_at || '—'}</td>
           </tr>
         `).join('');
       } catch (e) {
@@ -765,4 +781,4 @@ def ops_dashboard(response: Response):
 </body>
 </html>
     """
-    return HTMLResponse(content=html)
+    return HTMLResponse(content=html, headers=headers)
