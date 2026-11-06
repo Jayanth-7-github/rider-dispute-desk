@@ -11,7 +11,7 @@ Autonomous AI agent system handling rider payout complaints for QuickDrop with d
 docker compose up --build
 ```
 - **Service API**: `http://localhost:8000` (answers `GET /health` with 200 OK)
-- **Ops Dashboard**: `http://localhost:8000/ops`
+- **Ops Dashboard**: `http://localhost:8000/ops` (High-contrast Strong Red `#C50022`, Pure Black `#000000`, and White palette)
 - **PaySwift Sandbox**: `http://localhost:8081`
 
 ### Run Evaluations
