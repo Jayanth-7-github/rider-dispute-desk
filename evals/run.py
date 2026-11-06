@@ -28,9 +28,10 @@ def run_evals(service_url: str, payswift_url: Optional[str] = None):
                 print(f"[FAIL] Service health check returned HTTP {res.status_code}")
                 sys.exit(1)
             health_data = res.json()
-            if not os.getenv("PAYSWIFT_BASE_URL") and payswift_url in ("http://127.0.0.1:8081", "http://localhost:8081"):
-                if health_data.get("payswift_url"):
-                    payswift_url = health_data["payswift_url"].rstrip("/").replace("localhost", "127.0.0.1")
+            # Only adopt payswift_url from health if not an internal docker alias when running externally
+            candidate_ps = health_data.get("payswift_url")
+            if candidate_ps and "payswift:" not in candidate_ps and not os.getenv("PAYSWIFT_BASE_URL"):
+                payswift_url = candidate_ps.rstrip("/").replace("localhost", "127.0.0.1")
     except Exception as e:
         print(f"[FAIL] Could not connect to target service at {service_url}: {e}")
         print("  -> Ensure your app is running: uvicorn app.main:app --port 8000")
