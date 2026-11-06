@@ -433,11 +433,11 @@ def ops_dashboard():
 
         <!-- ACTIVE RIDERS DIRECTORY -->
         <section class="dbs-card p-5">
-          <div class="flex items-center justify-between mb-3.5">
-            <h3 class="text-xs font-black uppercase tracking-widest text-white font-mono flex items-center gap-2">
-              <span class="brand-red">///</span> Recent Rider Directory
+          <div class="flex items-center justify-between mb-3.5 gap-2">
+            <h3 class="text-xs font-black uppercase tracking-widest text-white font-mono flex items-center gap-2 whitespace-nowrap">
+              <span class="brand-red">///</span> Rider Directory
             </h3>
-            <span class="text-[11px] text-stone-400 font-mono">Select to inspect dossier</span>
+            <input type="text" id="rider-search-input" oninput="filterRiders()" placeholder="Filter ID (e.g. R003)..." class="bg-black border border-[#222222] focus:border-[#C50022] text-xs px-2.5 py-1 rounded text-white font-mono outline-none w-44">
           </div>
           <div id="riders-list" class="flex flex-wrap gap-2">
             <span class="text-xs text-stone-500">Loading riders...</span>
@@ -497,6 +497,9 @@ def ops_dashboard():
           <h3 class="text-xs font-black uppercase tracking-widest text-white font-mono flex items-center gap-2">
             <span class="brand-red">///</span> PaySwift Live Banking Ledger
           </h3>
+          <span id="ledger-total-badge" class="red-badge-outline px-2 py-0.5 rounded text-[10px] font-mono font-bold ml-2">
+            Settled: ₹0
+          </span>
         </div>
         <p class="text-[11px] text-stone-400 font-mono">Reconciled against bank API in real time</p>
       </div>
@@ -616,30 +619,45 @@ def ops_dashboard():
       }
     }
 
+    let allRiders = [];
+
     async function fetchRiders() {
       try {
         const res = await fetch('/ops/riders');
-        const riders = await res.json();
-        const container = document.getElementById('riders-list');
-        if (!riders || riders.length === 0) return;
-
-        container.innerHTML = riders.map(r => `
-          <button onclick="selectRider('${r.rider_id}')" class="px-3 py-1 rounded text-xs font-mono font-bold transition cursor-pointer ${
-            activeRider === r.rider_id 
-              ? 'red-btn' 
-              : 'red-btn-outline'
-          }">
-            ${r.rider_id} ${r.message_count > 0 ? `<span class="opacity-80 text-[10px]">(${r.message_count})</span>` : ''}
-          </button>
-        `).join('');
+        allRiders = await res.json() || [];
+        renderRiders();
       } catch (e) {
         console.error("Error loading riders:", e);
       }
     }
 
+    function renderRiders() {
+      const container = document.getElementById('riders-list');
+      const query = (document.getElementById('rider-search-input')?.value || '').trim().toUpperCase();
+      const filtered = query ? allRiders.filter(r => r.rider_id.toUpperCase().includes(query)) : allRiders;
+      if (!filtered || filtered.length === 0) {
+        container.innerHTML = '<span class="text-xs text-stone-500 font-mono">No matching riders found.</span>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(r => `
+        <button onclick="selectRider('${r.rider_id}')" class="px-3 py-1 rounded text-xs font-mono font-bold transition cursor-pointer ${
+          activeRider === r.rider_id 
+            ? 'red-btn' 
+            : 'red-btn-outline'
+        }">
+          ${r.rider_id} ${r.message_count > 0 ? `<span class="opacity-80 text-[10px]">(${r.message_count})</span>` : ''}
+        </button>
+      `).join('');
+    }
+
+    function filterRiders() {
+      renderRiders();
+    }
+
     async function selectRider(riderId) {
       activeRider = riderId;
-      fetchRiders();
+      renderRiders();
 
       document.getElementById('dossier-avatar').innerText = riderId.replace('R0', 'R').substring(0, 3);
       document.getElementById('dossier-rider-id').innerText = `${riderId} — Loading...`;
@@ -744,8 +762,15 @@ def ops_dashboard():
     async function fetchPayouts() {
       try {
         const res = await fetch('/ops/payouts');
-        const payouts = await res.json();
+        const payouts = await res.json() || [];
         const tbody = document.getElementById('payswift-ledger-body');
+        const totalBadge = document.getElementById('ledger-total-badge');
+
+        const totalSettled = payouts.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+        if (totalBadge) {
+          totalBadge.innerText = `Settled: ₹${totalSettled} (${payouts.length})`;
+        }
+
         if (!payouts || payouts.length === 0) return;
 
         tbody.innerHTML = payouts.slice().reverse().map(p => `
